@@ -8,12 +8,6 @@ The model represents each triangle as nine coordinate tokens. It predicts these 
 
 This project uses Python 3.11 and uv for dependency and environment management.
 
-Install uv if it is not already available.
-
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
-
 Create or update the local environment from the lockfile.
 
 ```bash
