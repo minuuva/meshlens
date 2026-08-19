@@ -1,90 +1,127 @@
-# 3D Mesh Transformer Mechanistic Interpretation
+# meshlens
 
-This repo is ongoing work on mechanistic interpretation for 3D mesh transformers. The main goal is to understand what an autoregressive mesh generation model attends to when it predicts the next spatial coordinate token.
+Mechanistic interpretability for 3D mesh transformers. This repository asks
+whether attention in an autoregressive mesh generator tracks the *geometry* of
+the shape it is building, or merely the *order* in which that shape was
+serialized — and finds that separating the two is harder than the existing
+literature assumes.
 
-The model represents each triangle as nine coordinate tokens. It predicts these tokens one at a time to build a mesh. This makes it possible to study how attention changes across triangles, token positions, layers, and attention heads during generation.
+Work in progress. Results below are current as of the round 1 preregistration.
 
-## Environment setup
+## The problem
 
-This project uses Python 3.11 and uv for dependency and environment management.
+[MeshXL](https://arxiv.org/abs/2405.20853) generates a mesh as a token stream:
+nine tokens per triangle, three vertices of three coordinates each. Because the
+sequence *is* the geometry, every attention weight has a literal spatial
+address, and you can paint attention onto the chair. That makes it tempting to
+read a head's attention map as evidence of geometric specialization.
 
-Create or update the local environment from the lockfile.
+The temptation is a trap. In MeshXL's canonical serialization, faces arrive
+sorted by height, so **face index and vertical position are very nearly the same
+variable**:
 
-```bash
-uv sync --locked
+| | Spearman(face index, coordinate) |
+|---|---|
+| x | +0.097 |
+| **y (vertical)** | **+0.935 mean, +0.951 median** |
+| z | −0.277 |
+
+Measured across all 2820 training chairs; 82% of chairs exceed 0.9. A cubic in
+normalized sequence position explains 86% of height variance.
+
+So "early layers attend to chair legs, late layers attend to chair backs" is not
+evidence of geometric structure. Plain recency produces exactly that picture.
+The confound is structural — a property of the canonical face sort, present in
+every training mesh, and not escapable by choosing different chairs.
+
+Reproduce with `python scripts/confound_check.py` (no GPU, no model weights).
+
+## Findings
+
+All decisions follow rules fixed in [docs/prereg_round1.md](docs/prereg_round1.md)
+before any attention was extracted.
+
+- **Attention is predominantly recency, at every depth.** Over 100 chairs, the
+  median partial correlation with sequence proximity is +0.430 (95% CI
+  [+0.412, +0.472]) at the final layer, versus +0.194 ([+0.165, +0.206]) with 3D
+  proximity once sequence distance is controlled.
+
+- **The preregistered verdict is INCONCLUSIVE, and stays that way.** Support
+  required ≥ 0.20; the estimate landed six thousandths under. The interval is
+  0.04 wide, so this is not a power problem — more chairs would tighten it around
+  0.19, not resolve it. The value sits in the dead band the thresholds carved out.
+
+- **No head in the model is primarily geometric** (exploratory). Across all 768
+  head slots, none reaches ρ_spatial 0.50; the maximum anywhere is +0.469, while
+  ρ_seq reaches +0.951. Of 263 active heads, 10 are more spatial than
+  recency-driven.
+
+- **The first half of the network has no geometric selectivity at all.** Layers
+  0–11 median ρ_spatial −0.043, with 65 of 84 active heads at or below zero.
+  Geometry appears only past layer 10 and stays modest (layers 12–23 median
+  +0.260). This is the opposite of the "legs early, backs late" reading.
+
+- **The model is modelling the sequence, not the shape.** Re-sorting faces so
+  index tracks x instead of height changes no geometry — same vertices, same
+  triangles, same shape, only presentation order — and raises cross-entropy
+  **40×** (0.055 → 2.203, higher in 37/37 chairs). That tripped the experiment's
+  own validity gate, so it is reported as a distribution-shift result rather than
+  as evidence about heads. It also means the confound may not be breakable by
+  reordering at all.
+
+## What is here
+
+```
+src/meshlens/
+  faces.py     token/face indexing, MeshXL's undiscretize, 9x9 block reduction
+  extract.py   torch-side reduction (a float64 numpy copy is ~11 GB per layer)
+  stats.py     partial Spearman, batched variant, chair-level bootstrap
+  data.py      seeded primary/holdout split, the x-resort manipulation
+  model.py     loader forcing eager attention (see below)
+  verdict.py   the preregistered decision rules, as tested code
+scripts/       confound check, experiment runners, analyses
+tests/         49 tests
+docs/          the frozen preregistration, with results appended
+paper/         LaTeX source and figures/make_figures.py
+results/       committed run artifacts
 ```
 
-Activate the environment if you want to use it directly in a terminal.
+Two things worth knowing before reusing any of this:
 
-```bash
-source .venv/bin/activate
+**MeshXL's constructor calls `to_bettertransformer()`,** which swaps in a fused
+SDPA kernel that never materializes the softmax matrix. Attention weights cannot
+be read through it. `src/meshlens/model.py` reproduces MeshXL's construction
+exactly but forces eager attention.
+
+**MeshXL's `undiscretize` is `(t + 0.5)/128 * 2 − 1`,** not `t/127 * 2 − 1`. Both
+are affine in `t`, so correlations are unaffected, but absolute distances and
+areas are not.
+
+## Setup
+
+```sh
+uv sync                      # analyses and tests; no torch
+uv run pytest
+uv sync --extra model        # adds torch + transformers for attention work
 ```
 
-The `.venv` directory stays local and should not be uploaded. Commit `pyproject.toml`, `uv.lock`, and `.python-version` so the environment can be reproduced on another machine.
+Data and checkpoints stay local — see [data/README.md](data/README.md). The chair
+fine-tune is public, so nothing depends on private artifacts.
+`scripts/setup_vm.sh` provisions a fresh box.
 
-## Research focus
+No GPU is required. A teacher-forced 1.3B forward pass with attention streaming
+runs in seconds on CPU; the 100-chair experiment takes about 80 minutes on 100
+vCPU. The original work needed an A100 only because it stored complete
+`(32, T, T)` attention per layer.
 
-This work explores the following questions.
+## Provenance
 
-- Which parts of a mesh does the model use when predicting the next coordinate token?
-- Do different attention heads learn different spatial roles?
-- Which heads are active, and which heads are dormant?
-- Why do the BOS token and early triangle tokens act as attention sinks?
-- What purpose do sink tokens serve during mesh generation?
-- Does removing or replacing sink tokens affect attention, entropy, mesh quality, or generation length?
-- Can several spatial sink tokens work better than one sink at the start of the sequence?
+Built on a earlier collaboration by Ethan Cao, Minu Choi, and Patrick Ho (prior work
+University of Virginia), whose paper source is in `paper/`. The other two authors
+have since left the work. This repository reworks it: the earlier draft's claim
+of layer-wise geometric specialization does not survive the recency control
+above, and several of its numbers had no artifact behind them. The audit is
+tracked in the preregistration and commit history rather than quietly patched.
 
-## Notebooks
-
-### [Attention Head Analysis](Attention_Head_Analysis.ipynb)
-
-This is the broader attention head analysis. It compares several ways of measuring attention.
-
-- Raw attention shows where each head places attention weight.
-- GradSAM keeps both helpful and harmful gradient contributions.
-- Attention weighted by value norm gives a rough measure of information flow.
-- Head removal estimates which heads help or hurt the prediction.
-
-The notebook also compares heads across layers and chair meshes. It separates active heads from dormant heads based on how much attention they place on the BOS token.
-
-### [Attention Head GradCAM](Attention_Head_GradCAM.ipynb)
-
-This notebook compares raw attention with GradCAM attention. Raw attention shows where the model looks. GradCAM estimates which attended regions affect the prediction.
-
-It compares attention across heads, layers, query triangles, and different chair meshes. The goal is to see whether attention head behavior is consistent and whether the regions receiving attention are the regions that matter for prediction.
-
-### [Sink Removal Experiments](sink_removal_experiments.ipynb)
-
-This notebook tests what happens when attention sink tokens are changed or removed during generation.
-
-- Generate without the BOS token.
-- Replace the first triangle with neutral coordinate tokens.
-- Compare attention entropy and concentration with and without the sink.
-- Repeat the comparison across several random seeds.
-- Measure how strongly each query position attends to the BOS token and the first triangle.
-
-### [Spatial Sink Analysis](spatial_sink_analysis_v2.ipynb)
-
-This notebook studies whether sink attention is related to spatial position.
-
-- Compare sink attention with triangle position.
-- Measure distance from the mesh center and the first triangle.
-- Control for sequence position when measuring spatial effects.
-- Test whether nearby triangles can take the place of a sink.
-- Use spatial clusters to find possible locations for additional sink tokens.
-
-### [Spatial Scaffold Experiment](spatial_scaffold_experiment_v2.ipynb)
-
-This notebook tests spatial scaffold sink tokens. It adds eight tokens at fixed positions around the mesh and initializes them from the BOS embedding.
-
-The experiment records how much attention goes to BOS, the scaffold tokens, and earlier triangles. It compares the generated mesh with the baseline using mesh measurements, visual comparison, and the distance between consecutive triangles.
-
-## Supporting files
-
-- `baseline_tokens_1000.pkl` stores baseline generation tokens used by the sink removal work.
-- `exp1_remove_bos_entropy.png` shows the entropy comparison from the BOS removal experiment.
-- `exp1_remove_bos_meshes.png` shows the generated meshes from the BOS removal experiment.
-
-## Current state
-
-This is an active research repo. The notebooks are exploratory and some depend on local model weights, ShapeNet data, and saved attention files from earlier runs.
+MeshXL is by Chen et al. (NeurIPS 2024). ShapeNet is research-license and is not
+redistributed here.

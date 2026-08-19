@@ -77,6 +77,12 @@ manipulation relocates the confounded axis rather than destroying the ordering
 structure, which is why it is preferred here over a random face shuffle. A
 shuffle remains available as a fallback if the Experiment 2 validity gate trips.
 
+**Correction, recorded with the results below.** That last sentence is wrong and
+the run showed why. The x-sorted input raised cross-entropy roughly fortyfold,
+far past the gate. A random shuffle destroys more ordering structure than a
+re-sort does, so it can only score worse; there is no fallback in that
+direction. The confound may not be breakable by reordering at all.
+
 ## Experiment 1 (confirmatory): does spatial proximity survive the control?
 
 Primary test, on unmodified canonically-sorted meshes, fully in distribution.
@@ -184,4 +190,70 @@ result.
 
 ## Results
 
-(To be appended after the tests run as specified, whatever they show.)
+Recorded 2026-08-19, after the tests ran as specified.
+
+### Experiment 1: INCONCLUSIVE
+
+100 chairs, canonical order, final layer, 19 of 32 heads active.
+
+    rho_spatial = +0.194   95% CI [+0.165, +0.206]
+    rho_seq     = +0.430   95% CI [+0.412, +0.472]
+
+Support required rho_spatial >= 0.20 with a CI excluding zero; refutation
+required < 0.10 alongside rho_seq >= 0.30. The estimate falls six thousandths
+under the support threshold, so the verdict is INCONCLUSIVE. The threshold was
+not moved, no other layer was substituted, and the sink cutoff was not adjusted.
+
+This is not a power problem. The interval is 0.04 wide, so additional chairs
+will tighten it around 0.19 rather than resolve it; the value sits inside the
+dead band the thresholds carved out.
+
+### Experiment 2: GATE TRIPPED, halted at 37 of 100 chairs
+
+    canonical mean cross-entropy = 0.055
+    x-sorted  mean cross-entropy = 2.203
+    ratio = 40.0x                     (gate at 2x)
+    per-chair ratio: min 12.2x, median 48.7x, max 124.2x, higher in 37/37
+
+Per the gate, E2 is reported as a distribution-shift result and not as evidence
+about head function; E1 stands as the primary evidence. Head-level statistics
+from this arm are not reported.
+
+The run was stopped at 37 chairs rather than completed. The gate outcome was not
+in doubt: the smallest per-chair ratio observed was still six times the gate, and
+every chair moved the same way. Completing it would have produced head-level
+numbers the gate already forbids reporting. `results/e2_validity_gate.npz` holds
+the per-chair losses and `results/run_e1_e2.log` the full run log.
+
+The measurement means something on its own, even though the arm failed. A
+re-sort changes no geometry whatsoever: same vertices, same triangles, same
+shape, only the order of presentation. Losing that much predictive power to a
+permutation says the model is modelling the sequence rather than the shape,
+which is an argument for the same conclusion E1 points toward and does not
+depend on where the E1 threshold was placed.
+
+### Experiment 3: not run
+
+Coded and provisioned, not yet executed.
+
+### Exploratory, not confirmatory
+
+Per-head medians over the 100 chairs, all 768 head slots:
+
+  - no head reaches rho_spatial 0.50 anywhere; the maximum is +0.469, while
+    rho_seq reaches +0.951
+  - of the 263 active heads, 10 are more spatial than recency-driven, 3.8%
+  - median over active heads: +0.147 spatial against +0.591 recency
+  - layers 0-11: median rho_spatial -0.043, 65 of 84 active heads at or below zero
+  - layers 12-23: median rho_spatial +0.260, 6 of 179 at or below zero
+
+So no head in this model is primarily geometric, and the first half of the
+network carries no geometric selectivity once sequence position is controlled.
+
+### Carried forward
+
+The held-out 100 chairs remain untouched. Reordering appears to be a dead end
+for decorrelation, so the natural round-2 design is other object categories --
+the sft checkpoint ships table, lamp, and bench -- where the coupling between
+height and sequence index should vary by shape without any manipulation and
+without leaving the training distribution.
