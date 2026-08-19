@@ -25,10 +25,9 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from meshlens.stats import bootstrap_ci
-
-SINK_THRESHOLD = 0.5
-RETENTION = 0.10  # a spatial head keeps rho_spatial within this
-GATE = 2.0  # loss ratio above which E2 becomes a distribution-shift result
+from meshlens.verdict import E2_LOSS_GATE as GATE
+from meshlens.verdict import E2_RETENTION as RETENTION
+from meshlens.verdict import SINK_THRESHOLD, e2_verdict
 
 
 def main():
@@ -87,12 +86,8 @@ def main():
     print(f"\n  heads retaining rho_spatial within {RETENTION}: "
           f"{np.nansum(retained)}/{active.sum()}")
 
-    if gate_tripped:
-        print("\n  (interpreted as distribution shift, per the gate above)")
-    elif abs(med_d) <= RETENTION:
-        print("\n  SPATIAL SELECTIVITY IS STABLE under the re-sort")
-    else:
-        print("\n  APPARENT SPATIAL SELECTIVITY FOLLOWS THE SORT KEY")
+    tag, why = e2_verdict(med_d, ratio)
+    print(f"\n  {tag}: {why}")
 
 
 if __name__ == "__main__":

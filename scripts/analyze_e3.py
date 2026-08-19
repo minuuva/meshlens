@@ -16,7 +16,7 @@ from scipy.stats import spearmanr
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-INHERITED, INDEPENDENT = 0.5, 0.2
+from meshlens.verdict import e3_verdict
 
 
 def main():
@@ -41,12 +41,8 @@ def main():
     print(f"text sink: mean={t.mean():.3f} median={np.median(t):.3f} max={t.max():.3f}")
     print(f"\nSpearman(mesh, text) over all heads = {rho:+.3f}  95% CI [{lo:+.3f}, {hi:+.3f}]")
 
-    if rho >= INHERITED:
-        print("\n  INHERITED: sink head identity survives the modality swap")
-    elif rho <= INDEPENDENT:
-        print("\n  INDEPENDENT: sinks re-form under the new modality")
-    else:
-        print("\n  PARTIAL inheritance")
+    tag, why = e3_verdict(rho)
+    print(f"\n  {tag}: {why}")
 
     print("\nper layer:")
     for L in range(n_layers):

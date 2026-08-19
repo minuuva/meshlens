@@ -22,17 +22,7 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from meshlens.stats import bootstrap_ci
-
-SINK_THRESHOLD = 0.5
-SUPPORT, REFUTE_SPATIAL, REFUTE_SEQ = 0.20, 0.10, 0.30
-
-
-def verdict(med_spatial, lo, hi, med_seq):
-    if med_spatial >= SUPPORT and lo > 0:
-        return "SUPPORTED: spatial selectivity survives the control"
-    if med_spatial < REFUTE_SPATIAL and med_seq >= REFUTE_SEQ:
-        return "REFUTED: attention is recency, not geometry"
-    return "INCONCLUSIVE at this n"
+from meshlens.verdict import SINK_THRESHOLD, e1_verdict
 
 
 def main():
@@ -71,7 +61,8 @@ def main():
     print(f"\nPRIMARY (median over {active.sum()} active heads, final layer)")
     print(f"  rho_spatial = {med_sp:+.3f}  95% CI [{lo_sp:+.3f}, {hi_sp:+.3f}]")
     print(f"  rho_seq     = {med_sq:+.3f}  95% CI [{lo_sq:+.3f}, {hi_sq:+.3f}]")
-    print(f"\n  {verdict(med_sp, lo_sp, hi_sp, med_sq)}")
+    tag, why = e1_verdict(med_sp, lo_sp, med_sq)
+    print(f"\n  {tag}: {why}")
 
     print("\nby layer (median over that layer's active heads):")
     for L in range(n_layers):
