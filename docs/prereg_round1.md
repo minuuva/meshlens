@@ -163,6 +163,25 @@ Reported as exploratory and not subject to the rules above:
 - Re-running the GradSAM raw-vs-gradient correlation that previously failed on a
   chair-index mismatch.
 
+## Amendments
+
+**A1, recorded before any model was run on any chair.** Experiment 1 above says
+the partial correlations are computed "over all causal (q,k) face pairs pooled
+across the 100 chairs". They are instead computed **per chair**, and the primary
+statistic is the median over chairs of the per-head value.
+
+Reason: pair count grows as the square of face count. The sample spans 50 to 800
+faces, so pooling raw pairs would give an 800-face chair roughly 250 times the
+weight of a 50-face chair, and the pooled number would mostly describe the
+largest meshes. Computing per chair gives every mesh one vote and makes the
+bootstrap over chairs, which the design already specified, exact rather than
+approximate.
+
+Nothing about the interpretation rules, thresholds, sample, or held-out set
+changes. No attention had been extracted under this design when this amendment
+was written; the change is a property of the estimator, not a response to a
+result.
+
 ## Results
 
 (To be appended after the tests run as specified, whatever they show.)
