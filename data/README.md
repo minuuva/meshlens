@@ -25,8 +25,22 @@ sequence order. See `scripts/confound_check.py`.
 
 ## Model checkpoint (required for attention work, not for the confound check)
 
-`ckpts/meshxl-1.3b-chair.pth` — the chair-finetuned 1.3B checkpoint. Base models
-are on HuggingFace under `CH3COOK/mesh-xl-{125m,350m,1.3b}`.
+The chair fine-tune is public, so none of this depends on the original authors'
+machine. `CH3COOK/MeshXL-1.3b-sft` holds `meshxl-1.3b-chair.pth` (2.45 GB)
+alongside table, lamp, and bench fine-tunes.
+
+```sh
+python -c "from huggingface_hub import hf_hub_download; \
+  print(hf_hub_download('CH3COOK/MeshXL-1.3b-sft','meshxl-1.3b-chair.pth'))"
+```
+
+Note that `mesh-xl/mesh-xl-1.3b`, the repo MeshXL's constructor names, supplies
+only config and a `dummy` tensor: every real weight comes from the sft checkpoint
+above. A correct load reports zero missing and zero unexpected keys and scores
+cross-entropy near 0.06 on a training chair. Random init would score
+ln(131) = 4.875, so that number is the check that the weights actually landed.
+
+`scripts/setup_vm.sh` provisions all of the above on a fresh CPU box.
 
 ## Licensing
 
