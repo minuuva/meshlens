@@ -24,21 +24,10 @@ import torch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from meshlens.data import load_chairs, make_tokenizer, resort_faces, sample_splits, tokenize
-from meshlens.faces import TOKENS_PER_FACE, causal_pairs, centroids_from_tokens, face_attention, n_faces
+from meshlens.extract import block_mean_torch, normalize_faces, sink_per_head
+from meshlens.faces import causal_keep_mask, causal_pairs, centroids_from_tokens, n_faces
 from meshlens.model import load_meshxl
 from meshlens.stats import head_partials_batch
-
-
-def reduce_layer(attn, n_face):
-    """(H, T, T) token attention -> (H, F, F) sink-excluded, row-normalized."""
-    return np.stack([face_attention(attn[h], n_face) for h in range(attn.shape[0])])
-
-
-def sink_per_head(attn, n_face):
-    """Mean attention onto the sink region from the final face's query rows."""
-    q0 = 1 + TOKENS_PER_FACE * (n_face - 1)
-    rows = attn[:, q0 : q0 + TOKENS_PER_FACE, :]
-    return rows[:, :, : 1 + TOKENS_PER_FACE].sum(axis=2).mean(axis=1)
 
 
 def run_chair(model, ids, centroids):
@@ -48,6 +37,7 @@ def run_chair(model, ids, centroids):
     if len(q_idx) < 64:
         return None
 
+    keep = causal_keep_mask(F)  # reused across all 24 layers
     layers = model.model.decoder.layers
     out = {"spatial": [], "seq": [], "sink": []}
 
@@ -56,9 +46,11 @@ def run_chair(model, ids, centroids):
             attn = output[1]
             if attn is None:
                 return output
-            a = attn[0].detach().float().numpy()  # (H, T, T)
+            # Reduce inside torch at float32: a float64 numpy copy of this
+            # tensor is ~11 GB for an 800-face mesh and stalls the machine.
+            a = attn[0].detach()  # (H, T, T) torch float32, no copy
             out["sink"].append(sink_per_head(a, F))
-            faces = reduce_layer(a, F)  # (H, F, F)
+            faces = normalize_faces(block_mean_torch(a, F), keep)  # (H, F, F)
             rows = faces[:, q_idx, k_idx]  # (H, n_pairs)
             sp, sq = head_partials_batch(rows, d_seq, d_3d)
             out["spatial"].append(sp)
@@ -86,6 +78,7 @@ def main():
     ap.add_argument("--limit", type=int, default=None, help="for timing runs only")
     ap.add_argument("--npz", default="data/shapenet/03001627_train.npz")
     ap.add_argument("--ckpt", default="ckpts/meshxl-1.3b-chair.pth")
+    ap.add_argument("--meshxl-root", default=".", help="checkout containing models/mesh_xl/")
     ap.add_argument("--out", default=None)
     args = ap.parse_args()
 
@@ -97,7 +90,7 @@ def main():
 
     model, missing, unexpected = load_meshxl(args.ckpt)
     assert not missing and not unexpected, f"bad load: {len(missing)}/{len(unexpected)}"
-    tokenizer = make_tokenizer()
+    tokenizer = make_tokenizer(args.meshxl_root)
 
     spatial, seq, sink, kept, losses = [], [], [], [], []
     t_start = time.time()

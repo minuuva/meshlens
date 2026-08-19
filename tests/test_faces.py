@@ -131,3 +131,40 @@ def test_causal_pairs_match_face_attention_support():
 def test_causal_pairs_degenerate_mesh():
     q, k, d_seq, d_3d = causal_pairs(np.zeros((2, 3)))
     assert len(q) == 0 and len(d_3d) == 0
+
+
+def test_batched_face_attention_matches_the_single_head_version():
+    # face_attention now delegates to the batched path; this pins the batched
+    # result against an independent, obviously-correct computation of the same
+    # thing, so the vectorization cannot silently change semantics.
+    from meshlens.faces import causal_keep_mask, face_attention_batch
+
+    rng = np.random.default_rng(21)
+    F, H = 9, 4
+    T = 2 + TOKENS_PER_FACE * F
+    attn = rng.random((H, T, T))
+
+    batched = face_attention_batch(attn, F)
+    for h in range(H):
+        naive = np.zeros((F, F))
+        for q in range(F):
+            for k in range(F):
+                qs, qe = face_span(q)
+                ks, ke = face_span(k)
+                naive[q, k] = attn[h, qs:qe, ks:ke].mean()
+        keep = causal_keep_mask(F)
+        naive = np.where(keep, naive, 0.0)
+        total = naive.sum(axis=1, keepdims=True)
+        naive = np.divide(naive, total, out=np.zeros_like(naive), where=total > 0)
+        assert np.allclose(batched[h], naive)
+
+
+def test_causal_keep_mask_agrees_with_causal_pairs():
+    from meshlens.faces import causal_keep_mask
+
+    F = 11
+    keep = causal_keep_mask(F)
+    q, k, _, _ = causal_pairs(np.zeros((F, 3)))
+    expected = np.zeros((F, F), dtype=bool)
+    expected[q, k] = True
+    assert np.array_equal(keep, expected), "mask and pair enumeration must select the same cells"

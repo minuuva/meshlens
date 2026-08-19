@@ -68,9 +68,25 @@ def tokenize(item, tokenizer):
     return ids
 
 
-def make_tokenizer():
+def make_tokenizer(meshxl_root="."):
+    """MeshXL's own tokenizer, imported from a checkout of the upstream repo.
+
+    `meshxl_root` must contain `models/mesh_xl/`. Passed explicitly rather than
+    inferred from the working directory, since running a script puts the
+    script's own directory on the path and not the caller's cwd.
+    """
+    import os
+    import sys
     from types import SimpleNamespace
 
+    root = os.path.abspath(meshxl_root)
+    if not os.path.isdir(os.path.join(root, "models", "mesh_xl")):
+        raise FileNotFoundError(
+            f"{root} does not look like a MeshXL checkout (no models/mesh_xl/). "
+            "Clone https://github.com/OpenMeshLab/MeshXL and pass --meshxl-root."
+        )
+    if root not in sys.path:
+        sys.path.insert(0, root)
     from models.mesh_xl.tokenizer import MeshTokenizer
 
     return MeshTokenizer(SimpleNamespace(n_discrete_size=N_DISCRETE))
