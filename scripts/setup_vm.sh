@@ -25,4 +25,10 @@ PY
 [ -f data/shapenet/03001627_train.npz ] || curl -sL -o data/shapenet/03001627_train.npz \
   https://huggingface.co/datasets/CH3COOK/MeshXL-shapenet-data/resolve/main/03001627_train.npz
 
-echo "provisioned: $(du -sh ckpts data/shapenet | tr '\n' ' ')"
+# Experiment 3 needs a natural-text corpus for the OPT arm. Public domain,
+# fetched rather than vendored so no copyrighted text enters the repo.
+mkdir -p data/text
+[ -f data/text/corpus.txt ] || curl -sL https://www.gutenberg.org/files/1342/1342-0.txt \
+  -o data/text/corpus.txt
+
+echo "provisioned: $(du -sh ckpts data/shapenet data/text | tr '\n' ' ')"
