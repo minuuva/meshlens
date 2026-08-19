@@ -14,3 +14,8 @@ __pycache__/
 *.fdb_latexmk
 *.fls
 paper/main.pdf
+
+# Datasets and checkpoints stay local
+data/*
+!data/README.md
+ckpts/
