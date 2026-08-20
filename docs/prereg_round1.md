@@ -208,6 +208,33 @@ This is not a power problem. The interval is 0.04 wide, so additional chairs
 will tighten it around 0.19 rather than resolve it; the value sits inside the
 dead band the thresholds carved out.
 
+### Experiment 1 replication on the held-out split: agrees
+
+100 held-out chairs, never touched until the primary analysis was complete.
+
+    primary   rho_spatial +0.194   95% CI [+0.165, +0.206]
+    held-out  rho_spatial +0.180   95% CI [+0.167, +0.199]
+
+    primary   rho_seq     +0.430   [+0.412, +0.472]
+    held-out  rho_seq     +0.461   [+0.446, +0.489]
+
+The intervals overlap and the held-out split returns INCONCLUSIVE on its own
+terms as well. The splits are reported separately and are not pooled: combining
+them to reach n=200 would be the most tempting available route from a borderline
+estimate to a finding, and is precisely what fixing the rules in advance is meant
+to prevent.
+
+The replication settles what kind of inconclusive this is. Two independent
+samples of 100 chairs put the effect at +0.194 and +0.180 with tight, overlapping
+intervals. That is a precisely and reproducibly estimated effect of about 0.19,
+not a noisy one, and the support threshold happens to sit just above it. More
+data would narrow the interval further without moving the estimate.
+
+Note on reuse: the held-out chairs serve both this replication and round 2's
+sample. Round 2's design was frozen in `prereg_round2.md` before this
+replication's numbers were seen, and it measures a different quantity against a
+different hypothesis, so the reuse is not double-dipping on one test.
+
 ### Experiment 2: GATE TRIPPED, halted at 37 of 100 chairs
 
     canonical mean cross-entropy = 0.055
