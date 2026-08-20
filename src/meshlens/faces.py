@@ -119,3 +119,45 @@ def causal_pairs(centroids, min_query_face=2):
     d_seq = (q_idx - k_idx).astype(np.float64)
     d_3d = np.linalg.norm(centroids[q_idx] - centroids[k_idx], axis=1)
     return q_idx, k_idx, d_seq, d_3d
+
+
+def adjacency_matrix(face_edges, n_face):
+    """(F, F) boolean matrix of faces sharing an edge, from the dataset's `face_edges`.
+
+    `face_edges` is an (n_edges, 2) list of face-index pairs. It arrives with
+    both directions present and with self-pairs; both are normalized away here
+    so the matrix is symmetric with a clear diagonal.
+    """
+    edges = np.asarray(face_edges, dtype=np.int64)
+    adj = np.zeros((n_face, n_face), dtype=bool)
+    keep = (edges[:, 0] < n_face) & (edges[:, 1] < n_face)
+    edges = edges[keep]
+    adj[edges[:, 0], edges[:, 1]] = True
+    adj[edges[:, 1], edges[:, 0]] = True
+    np.fill_diagonal(adj, False)
+    return adj
+
+
+def vertex_keys(tokens):
+    """One integer per vertex, identifying its exact discretized position.
+
+    Two vertices with the same key occupy the same grid cell and produce
+    identical coordinate tokens, which is what the model sees. Returns (F, 3).
+    """
+    tokens = np.asarray(tokens, dtype=np.int64)
+    F = n_faces(len(tokens))
+    verts = tokens[1 : 1 + TOKENS_PER_FACE * F].reshape(F, 3, 3)
+    return verts[:, :, 0] * N_DISCRETE**2 + verts[:, :, 1] * N_DISCRETE + verts[:, :, 2]
+
+
+def shared_vertex_counts(keys, q_idx, k_idx):
+    """How many vertex positions each (q, k) face pair has in common, 0 to 3.
+
+    The Experiment 5 control. Adjacent faces share an edge and therefore two
+    vertices, so six of their eighteen coordinate tokens are identical; a head
+    that looked topological might only be matching repeated token values. This
+    counts that overlap directly so the two explanations can be separated.
+    """
+    a = keys[np.asarray(q_idx)][:, :, None]  # (P, 3, 1)
+    b = keys[np.asarray(k_idx)][:, None, :]  # (P, 1, 3)
+    return (a == b).any(axis=2).sum(axis=1).astype(np.float64)

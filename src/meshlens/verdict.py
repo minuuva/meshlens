@@ -18,6 +18,11 @@ E1_REFUTE_SEQ = 0.30  # ... while rho_seq is at or above this -> refuted
 E2_RETENTION = 0.10  # a genuinely spatial head keeps rho_spatial within this
 E2_LOSS_GATE = 2.0  # loss ratio above which E2 is a distribution-shift result
 
+# Experiment 4 / 5 (round 2)
+E4_SUPPORT = 0.15  # rho_adj at or above this, CI excluding zero -> topology survives
+E4_REFUTE = 0.05  # below this, CI excluding E4_SUPPORT -> no topological structure
+ADJACENCY_RATE = 0.0115  # measured fraction of causal face pairs sharing an edge
+
 # Experiment 3
 E3_INHERITED = 0.5
 E3_INDEPENDENT = 0.2
@@ -39,6 +44,14 @@ def e2_verdict(delta_median, loss_ratio):
     if abs(delta_median) <= E2_RETENTION:
         return "STABLE", "spatial selectivity is stable under the re-sort"
     return "FOLLOWS_SORT_KEY", "apparent spatial selectivity follows the sort key"
+
+
+def e4_verdict(med_adj, ci_lo, ci_hi):
+    if med_adj >= E4_SUPPORT and ci_lo > 0:
+        return "SUPPORTED", "attention carries topological structure beyond recency and proximity"
+    if med_adj < E4_REFUTE and ci_hi < E4_SUPPORT:
+        return "REFUTED", "no topological structure; the recency account stands"
+    return "INCONCLUSIVE", "at this n"
 
 
 def e3_verdict(rho):

@@ -80,6 +80,29 @@ New here:
 - Only chairs with at least 20 adjacent causal pairs enter, fixed here so that
   the inclusion rule cannot be tuned later.
 
+## Power, checked before running
+
+A rare binary predictor attenuates rank correlation, so a threshold that sounds
+modest can be unreachable in practice. At the measured adjacency rate of 1.15%
+of causal pairs, with roughly 20k pairs per chair, simulated attention that is
+multiplied on adjacent pairs gives:
+
+| attention multiplier on adjacent pairs | rho_adj |
+|---|---|
+| 1x (null) | 0.001 |
+| 2x | 0.172 |
+| 5x | 0.379 |
+| 25x | 0.616 |
+
+So the +0.15 support threshold corresponds to roughly a doubling of attention on
+adjacent pairs, which is an interpretable effect size rather than a wish, and the
+null is well behaved. Both properties are pinned in `tests/test_round2.py` so
+they cannot drift.
+
+Recorded because the first version of that simulation used an adjacency rate near
+0.005% by mistake and made the probe look hopelessly underpowered. The rate is
+the parameter this design lives or dies on.
+
 ## Sample
 
 The 100-chair held-out split from round 1, drawn by
@@ -97,7 +120,7 @@ bootstrap CI over chairs, 1000 resamples.
 - median `rho_adj` >= +0.15 with CI excluding zero -> attention carries
   genuine topological structure beyond recency and metric proximity. Reported as
   evidence that something geometric survives the controls.
-- median `rho_adj` < +0.05, CI excluding +0.15 -> no topological structure.
+- median `rho_adj` < +0.05, with the CI excluding +0.15 -> no topological structure.
   Combined with round 1 this is a strong recency account, and is reported as one.
 - anything between -> reported as inconclusive with the interval, as round 1's
   E1 was, with no threshold adjustment.

@@ -47,6 +47,57 @@ def head_partials(a, d_seq, d_3d):
     )
 
 
+def _residualize(target_ranks, control_ranks):
+    """Least-squares residual of one ranked variable against several others."""
+    design = np.column_stack([np.ones(len(target_ranks)), *control_ranks])
+    coef, *_ = np.linalg.lstsq(design, target_ranks, rcond=None)
+    return target_ranks - design @ coef
+
+
+def partial_spearman_multi(x, y, controls):
+    """Spearman correlation of x and y with several variables partialled out.
+
+    Generalizes `partial_spearman` past one control. Ranks everything, regresses
+    the two ranked variables on the ranked controls, and correlates the
+    residuals. Experiment 4 needs this because adjacency has to be read against
+    both sequence distance and 3D distance at once -- controlling for either one
+    alone would leave the other free to explain the result.
+    """
+    x = np.asarray(x, dtype=np.float64)
+    if len(x) < 4 + len(controls):
+        return np.nan
+    rx = rankdata(x)
+    ry = rankdata(np.asarray(y, dtype=np.float64))
+    rc = [rankdata(np.asarray(c, dtype=np.float64)) for c in controls]
+    ex, ey = _residualize(rx, rc), _residualize(ry, rc)
+    return _pearson(ex, ey)
+
+
+def head_partials_adjacency_batch(a_rows, adjacency, controls):
+    """`partial_spearman_multi` for many heads sharing one chair's pair geometry.
+
+    The control residual basis depends only on the mesh, so it is built once
+    rather than per head. `a_rows` is (n_heads, n_pairs).
+    """
+    a_rows = np.asarray(a_rows, dtype=np.float64)
+    n_heads, n_pairs = a_rows.shape
+    if n_pairs < 8:
+        return np.full(n_heads, np.nan)
+
+    rc = [rankdata(np.asarray(c, dtype=np.float64)) for c in controls]
+    design = np.column_stack([np.ones(n_pairs), *rc])
+    pinv = np.linalg.pinv(design)
+
+    def resid(v):
+        return v - design @ (pinv @ v)
+
+    e_adj = resid(rankdata(np.asarray(adjacency, dtype=np.float64)))
+    out = np.full(n_heads, np.nan)
+    for h in range(n_heads):
+        out[h] = _pearson(resid(rankdata(a_rows[h])), e_adj)
+    return out
+
+
 def head_partials_batch(a_rows, d_seq, d_3d):
     """`head_partials` for many heads sharing one chair's pair geometry.
 
