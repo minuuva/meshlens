@@ -27,8 +27,7 @@ baseline_tokens_1000.pkl
 exp1_remove_bos_entropy.png
 exp1_remove_bos_meshes.png
 
-# Earlier draft and the figures only it referenced
-paper/v0_*
+# Figures belonging to the earlier draft, superseded by figures/make_figures.py
 paper/figures/*.png
 
 # ...but the paper ships its bibliography so the build needs no bibtex pass
