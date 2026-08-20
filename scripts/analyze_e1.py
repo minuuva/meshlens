@@ -25,10 +25,44 @@ from meshlens.stats import bootstrap_ci
 from meshlens.verdict import SINK_THRESHOLD, e1_verdict
 
 
+def replicate(path, layer, med_a, lo_a, hi_a):
+    """Report a second split against the first, without pooling them.
+
+    The held-out set is a replication, not a top-up. Pooling to double n and
+    push a borderline estimate over a threshold is exactly what the
+    preregistration exists to prevent, so the two estimates are shown side by
+    side and the question asked is only whether they agree.
+    """
+    d = np.load(path, allow_pickle=True)
+    sink = d["sink"]
+    active = sink[:, layer, :].mean(axis=0) <= SINK_THRESHOLD
+    if active.sum() == 0:
+        print(f"\nREPLICATION {path}: no active heads")
+        return
+    per_chair = np.nanmedian(d["rho_spatial"][:, layer, :][:, active], axis=1)
+    med_b, lo_b, hi_b = bootstrap_ci(per_chair, seed=0)
+    seq_b = np.nanmedian(d["rho_seq"][:, layer, :][:, active], axis=1)
+    med_sq_b, lo_sq_b, hi_sq_b = bootstrap_ci(seq_b, seed=0)
+
+    print(f"\nREPLICATION on {d['split']} ({d['rho_spatial'].shape[0]} chairs, "
+          f"{active.sum()} active heads)")
+    print(f"  rho_spatial = {med_b:+.3f}  95% CI [{lo_b:+.3f}, {hi_b:+.3f}]")
+    print(f"  rho_seq     = {med_sq_b:+.3f}  95% CI [{lo_sq_b:+.3f}, {hi_sq_b:+.3f}]")
+    tag, why = e1_verdict(med_b, lo_b, med_sq_b)
+    print(f"  verdict on this split alone: {tag}")
+
+    overlap = not (hi_a < lo_b or hi_b < lo_a)
+    print(f"\n  primary   {med_a:+.3f} [{lo_a:+.3f}, {hi_a:+.3f}]")
+    print(f"  held-out  {med_b:+.3f} [{lo_b:+.3f}, {hi_b:+.3f}]")
+    print(f"  intervals {'overlap: the estimate replicates' if overlap else 'DISJOINT: the splits disagree'}")
+    print("  (reported separately by design; the splits are not pooled)")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("npz")
     ap.add_argument("--layer", type=int, default=-1)
+    ap.add_argument("--compare", help="a second run to report as a replication")
     args = ap.parse_args()
 
     d = np.load(args.npz, allow_pickle=True)
@@ -63,6 +97,9 @@ def main():
     print(f"  rho_seq     = {med_sq:+.3f}  95% CI [{lo_sq:+.3f}, {hi_sq:+.3f}]")
     tag, why = e1_verdict(med_sp, lo_sp, med_sq)
     print(f"\n  {tag}: {why}")
+
+    if args.compare:
+        replicate(args.compare, layer, med_sp, lo_sp, hi_sp)
 
     print("\nby layer (median over that layer's active heads):")
     for L in range(n_layers):
