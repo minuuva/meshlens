@@ -13,13 +13,11 @@ __pycache__/
 *.synctex.gz
 *.fdb_latexmk
 *.fls
-paper/main.pdf
 
 # Datasets and checkpoints stay local
 data/*
 !data/README.md
 ckpts/
-paper/main.bbl
 
 # Superseded exploratory notebooks and their artifacts. The analyses they
 # contained are reimplemented under src/meshlens with tests; these are kept on
@@ -32,3 +30,6 @@ exp1_remove_bos_meshes.png
 # Earlier draft and the figures only it referenced
 paper/v0_*
 paper/figures/*.png
+
+# ...but the paper ships its bibliography so the build needs no bibtex pass
+!paper/main.bbl

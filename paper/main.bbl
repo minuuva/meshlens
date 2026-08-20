@@ -1,0 +1,58 @@
+\begin{thebibliography}{10}
+
+\bibitem{barbero2025active}
+Federico Barbero, Andrea Banino, David Lindner, and Fazl Barez.
+\newblock Active-dormant attention heads: Mechanistically demystifying extreme-token phenomena in {LLMs}.
+\newblock {\em arXiv preprint arXiv:2504.02732}, 2025.
+
+\bibitem{barkan2021gradsam}
+Oren Barkan, Edan Hauon, Avi Caciularu, Ori Katz, Itzik Malkiel, Omri Armstrong, and Noam Koenigstein.
+\newblock {Grad-SAM}: Explaining transformers via gradient self-attention maps.
+\newblock In {\em Proceedings of the 30th ACM International Conference on Information and Knowledge Management (CIKM)}, pages 2882--2887, 2021.
+
+\bibitem{zhang2023shapenet}
+Angel~X. Chang, Thomas Funkhouser, Leonidas Guibas, Pat Hanrahan, Qixing Huang, Zimo Li, Silvio Savarese, Manolis Savva, Shuran Song, Hao Su, Jianxiong Xiao, Li~Yi, and Fisher Yu.
+\newblock {ShapeNet}: An information-rich {3D} model repository.
+\newblock {\em arXiv preprint arXiv:1512.03012}, 2015.
+
+\bibitem{chen2024meshxl}
+Sijin Chen, Xin Chen, Anqi Pang, Jinbo Cheng, Xijun Liu, Yuhang Zhu, and Jingyi Han.
+\newblock {MeshXL}: Neural coordinate field for generative {3D} foundation models.
+\newblock In {\em Advances in Neural Information Processing Systems (NeurIPS)}, 2024.
+
+\bibitem{gu2025attention}
+Xiangming Gu, Tianyu Pang, Chao Du, Qian Liu, Fengzhuo Zhang, Cunxiao Du, Ye~Wang, and Min Lin.
+\newblock When attention sink emerges in language models: An empirical view.
+\newblock In {\em International Conference on Learning Representations (ICLR)}, 2025.
+
+\bibitem{jiang2025devils}
+Zhangqi Jiang, Junkai Chen, Beier Zhu, Tingjin Luo, Yankun Shen, and Xu~Yang.
+\newblock Devils in middle layers of large vision-language models.
+\newblock In {\em IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)}, pages 25004--25014, 2025.
+
+\bibitem{karvonen2024measuring}
+Adam Karvonen, Benjamin Wright, Can Rager, Rico Angell, Jannik Brinkmann, Logan Smith, Claudio~Mayrink Verdun, David Bau, and Samuel Marks.
+\newblock Measuring progress in dictionary learning for language model interpretability with board game models.
+\newblock {\em arXiv preprint arXiv:2408.00113}, 2024.
+
+\bibitem{li2023emergent}
+Kenneth Li, Aspen~K. Hopkins, David Bau, Fernanda Vi{\'e}gas, Hanspeter Pfister, and Martin Wattenberg.
+\newblock Emergent world representations: Exploring a sequence model trained on a synthetic task.
+\newblock In {\em International Conference on Learning Representations (ICLR)}, 2023.
+
+\bibitem{nash2020polygen}
+Charlie Nash, Yaroslav Ganin, S.~M.~Ali Eslami, and Peter~W. Battaglia.
+\newblock {PolyGen}: An autoregressive generative model of {3D} meshes.
+\newblock In {\em International Conference on Machine Learning (ICML)}, 2020.
+
+\bibitem{siddiqui2024meshgpt}
+Yawar Siddiqui, Antonio Alliegro, Alexey Artemov, Tatiana Tommasi, Daniele Sirigatti, Vladislav Rosov, Angela Dai, and Matthias Nie{\ss}ner.
+\newblock {MeshGPT}: Generating triangle meshes with decoder-only transformers.
+\newblock In {\em IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)}, 2024.
+
+\bibitem{xiao2023streamingllm}
+Guangxuan Xiao, Yuandong Tian, Beidi Chen, Song Han, and Mike Lewis.
+\newblock Efficient streaming language models with attention sinks.
+\newblock {\em arXiv preprint arXiv:2309.17453}, 2023.
+
+\end{thebibliography}
