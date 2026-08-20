@@ -75,7 +75,7 @@ def mesh_sequences(npz, ckpt, meshxl_root, n_seq):
     model, missing, unexpected = load_meshxl(ckpt)
     assert not missing and not unexpected
     print(f"mesh: {n_seq} chairs near {target} faces "
-          f"(mean {np.mean([n_faces(len(s)) for s in seqs]):.0f})")
+          f"(mean {np.mean([n_faces(len(s)) for s in seqs]):.0f})", flush=True)
     return model, seqs
 
 
@@ -94,7 +94,7 @@ def text_sequences(text_path, n_seq):
         "facebook/opt-1.3b", attn_implementation="eager", torch_dtype=torch.float32
     )
     model.eval()
-    print(f"text: {n_seq} windows of {CONTEXT} tokens")
+    print(f"text: {n_seq} windows of {CONTEXT} tokens", flush=True)
     return model, seqs
 
 

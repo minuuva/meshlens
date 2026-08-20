@@ -13,11 +13,24 @@ curl -L -o data/shapenet/03001627_train.npz \
   https://huggingface.co/datasets/CH3COOK/MeshXL-shapenet-data/resolve/main/03001627_train.npz
 ```
 
+Round 2's design check also uses table, lamp, and bench, which the sft
+checkpoint likewise covers:
+
+```sh
+for cat in 04379243 03636649 02828884; do
+  curl -L -o data/shapenet/${cat}_train.npz \
+    https://huggingface.co/datasets/CH3COOK/MeshXL-shapenet-data/resolve/main/${cat}_train.npz
+done
+```
+
 Full set of categories: https://huggingface.co/datasets/CH3COOK/MeshXL-shapenet-data
 
 Each `.npz` holds `arr_0`, an array of dicts with keys `vertices` (torch float
 tensor, `nv x 3`), `faces` (torch long tensor, `nf x 3`), `face_edges`, `texts`,
 `cat_id`, `object_id`, `ext_info`. 2822 chairs, median 468 faces, max 800.
+
+`face_edges` is an (n_edges, 2) list of face-index pairs that share an edge:
+exact topological ground truth, and the probe round 2 is built on.
 
 **Faces arrive pre-sorted.** The MeshXL tokenizer does not sort; it flattens
 faces in the order the array already has. Face index therefore *is* token
