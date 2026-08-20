@@ -103,6 +103,23 @@ Recorded because the first version of that simulation used an adjacency rate nea
 0.005% by mistake and made the probe look hopelessly underpowered. The rate is
 the parameter this design lives or dies on.
 
+**Realized rate, noted while the run was in progress and before any result was
+seen.** The held-out chairs are coming in nearer 0.70% adjacent pairs than the
+1.15% measured on the design sample, so the probe is somewhat more attenuated
+than the table above assumes:
+
+| attention multiplier | rho at 1.15% | rho at 0.70% |
+|---|---|---|
+| 1x (null) | 0.001 | 0.006 |
+| 2x | 0.175 | 0.146 |
+| 5x | 0.369 | 0.308 |
+
+Reaching +0.15 takes roughly 2.2x attention on adjacent pairs at the realized
+rate, against 1.9x at the assumed one. The threshold stays reachable and the null
+stays clean, so the rule is unchanged. The realized rate is reported with the
+result rather than compared silently against a threshold calibrated on a rate the
+data did not deliver.
+
 ## Sample
 
 The 100-chair held-out split from round 1, drawn by
