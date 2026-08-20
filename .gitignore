@@ -19,3 +19,4 @@ paper/main.pdf
 data/*
 !data/README.md
 ckpts/
+paper/main.bbl
