@@ -232,9 +232,41 @@ permutation says the model is modelling the sequence rather than the shape,
 which is an argument for the same conclusion E1 points toward and does not
 depend on where the E1 threshold was placed.
 
-### Experiment 3: not run
+### Experiment 3: INDEPENDENT
 
-Coded and provisioned, not yet executed.
+20 meshes and 20 text windows, matched at OPT's 2048-token context.
+
+    Spearman(mesh grid, text grid) over 768 heads = -0.146
+    95% CI [-0.216, -0.078]
+
+The rule required rho >= 0.5 to call the sink inherited and rho <= 0.2 to call
+it independently re-formed. At -0.146 it is independent: sink head identity does
+not survive the modality swap. Knowing which heads sink in OPT tells you nothing
+about which heads sink in MeshXL.
+
+The magnitudes are the larger surprise and were not part of the rule:
+
+    MeshXL on meshes  mean 0.660, median 0.758, 72.0% of heads above 0.5
+    OPT-1.3b on text  mean 0.094, median 0.034,  4.0% of heads above 0.5
+
+A sevenfold difference in mean sink attention, from the same transformer body.
+The depth profiles are close to inverted as well: MeshXL sinks hardest through
+layers 1-13 and relaxes toward the output, while OPT stays low until layers
+21-23 and rises at the end.
+
+This bears on the original paper's claim that these behaviours emerge "without
+language inductive bias, suggesting these are properties of the transformer
+architecture itself". The premise was wrong, since MeshXL loads pretrained OPT
+weights. The conclusion nonetheless survives in a corrected form, and now with
+evidence rather than assumption: the sink structure MeshXL has is not the one it
+inherited, so it did form under mesh training. Architecture alone does not fix
+it, which is what the same body producing two unrelated sink maps demonstrates.
+
+Caveats. This compares a chair fine-tune against a base model, so some of the
+difference may be fine-tuning rather than modality. The sink definition is
+symmetric by construction, the first ten tokens in both, but those ten tokens
+are BOS plus a complete first triangle for a mesh and BOS plus nine arbitrary
+words for text.
 
 ### Exploratory, not confirmatory
 

@@ -218,6 +218,45 @@ def fig_resort(canon_path, xsort_path, out, layer=-1):
     print(f"wrote {out}")
 
 
+def fig_sink_transfer(res_path, out):
+    """Experiment 3: the body was inherited, the sink structure was not."""
+    d = np.load(res_path)
+    mesh, text = d["mesh"], d["text"]
+    rho = spearmanr(mesh.ravel(), text.ravel()).statistic
+
+    fig, axes = plt.subplots(1, 3, figsize=(COLUMN * 2, 2.0),
+                             gridspec_kw={"width_ratios": [1, 1, 1.2], "wspace": 0.62})
+    # one shared scale: the whole point is that the magnitudes differ
+    vmax = float(max(mesh.max(), text.max()))
+    cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
+        "sink", ["#f7f7f5", "#2a78d6", "#123f74"])
+    for ax, grid, title in ((axes[0], text, "OPT-1.3b on text"),
+                            (axes[1], mesh, "MeshXL on meshes")):
+        im = ax.imshow(grid, aspect="auto", cmap=cmap, vmin=0, vmax=vmax,
+                       interpolation="nearest")
+        ax.set_xlabel("head")
+        ax.set_title(f"{title}\nmean {grid.mean():.3f}", color=INK)
+        ax.set_yticks([0, 8, 16, 23])
+    axes[0].set_ylabel("layer")
+    cb = fig.colorbar(im, ax=axes[1], fraction=0.05, pad=0.06)
+    cb.set_label("sink attention", color=INK_2)
+    cb.outline.set_visible(False)
+
+    ax = axes[2]
+    ax.scatter(text.ravel(), mesh.ravel(), s=5, color=BLUE, alpha=0.5, linewidths=0)
+    ax.set_xlabel("sink in OPT (text)")
+    ax.set_ylabel("sink in MeshXL (mesh)")
+    ax.set_title(f"same head, both models\n$\\rho$ = {rho:+.3f}", color=INK)
+    ax.set_xlim(-0.03, vmax + 0.03)
+    ax.set_ylim(-0.03, vmax + 0.03)
+    ax.plot([0, vmax], [0, vmax], color=MUTED, linewidth=0.6, linestyle=(0, (3, 3)), zorder=0)
+    _tidy(ax, grid_axis="both")
+
+    fig.savefig(out)
+    plt.close(fig)
+    print(f"wrote {out}  (rho={rho:+.3f})")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--npz", default="data/shapenet/03001627_train.npz")
@@ -241,6 +280,11 @@ def main():
         fig_layer_profile(canon, out / "layer_profile.pdf")
     else:
         print(f"skip head figures: {canon} missing (run scripts/run_experiment.py)")
+    e3 = res / "e3_sink_transfer.npz"
+    if e3.exists():
+        fig_sink_transfer(e3, out / "sink_transfer.pdf")
+    else:
+        print(f"skip sink transfer figure: {e3} missing (run scripts/run_e3.py)")
     if canon.exists() and xsort.exists():
         fig_resort(canon, xsort, out / "resort.pdf")
     else:
