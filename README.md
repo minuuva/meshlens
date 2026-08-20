@@ -6,7 +6,9 @@ the shape it is building, or merely the *order* in which that shape was
 serialized — and finds that separating the two is harder than the existing
 literature assumes.
 
-Work in progress. Results below are current as of the round 1 preregistration.
+Work in progress. Round 1 is complete and recorded in
+[docs/prereg_round1.md](docs/prereg_round1.md); round 2 is frozen in
+[docs/prereg_round2.md](docs/prereg_round2.md) and running.
 
 ## The problem
 
@@ -38,8 +40,9 @@ Reproduce with `python scripts/confound_check.py` (no GPU, no model weights).
 
 ## Findings
 
-All decisions follow rules fixed in [docs/prereg_round1.md](docs/prereg_round1.md)
-before any attention was extracted.
+All decisions follow rules fixed before any attention was extracted. Where a
+verdict is inconclusive it is reported as inconclusive; no threshold has been
+moved after the fact.
 
 - **Attention is predominantly recency, at every depth.** Over 100 chairs, the
   median partial correlation with sequence proximity is +0.430 (95% CI
@@ -47,9 +50,15 @@ before any attention was extracted.
   proximity once sequence distance is controlled.
 
 - **The preregistered verdict is INCONCLUSIVE, and stays that way.** Support
-  required ≥ 0.20; the estimate landed six thousandths under. The interval is
-  0.04 wide, so this is not a power problem — more chairs would tighten it around
-  0.19, not resolve it. The value sits in the dead band the thresholds carved out.
+  required ≥ 0.20; the estimate landed six thousandths under.
+
+- **It replicates, which settles what that means.** A disjoint held-out 100
+  chairs, untouched until the primary analysis was complete, gives +0.180
+  ([+0.167, +0.199]) — overlapping intervals, and inconclusive on its own terms
+  too. Two independent samples at +0.194 and +0.180 means the effect is
+  precisely and reproducibly about 0.19, not noisily estimated. More data would
+  narrow the interval without moving it. The splits are reported separately and
+  never pooled.
 
 - **No head in the model is primarily geometric** (exploratory). Across all 768
   head slots, none reaches ρ_spatial 0.50; the maximum anywhere is +0.469, while
@@ -60,6 +69,13 @@ before any attention was extracted.
   0–11 median ρ_spatial −0.043, with 65 of 84 active heads at or below zero.
   Geometry appears only past layer 10 and stays modest (layers 12–23 median
   +0.260). This is the opposite of the "legs early, backs late" reading.
+
+- **Sink head identity does not survive a modality transplant.** MeshXL inherits
+  OPT-1.3b's transformer body and reinitializes only the embeddings, so the two
+  are comparable head by head. Their sink maps are unrelated (Spearman −0.146,
+  [−0.216, −0.078]) and the magnitudes differ sevenfold: 72% of MeshXL's 768
+  heads sink above 0.5 versus 4% of OPT's. Whatever sink structure MeshXL has,
+  it formed under mesh training rather than arriving with the weights.
 
 - **The model is modelling the sequence, not the shape.** Re-sorting faces so
   index tracks x instead of height changes no geometry — same vertices, same
@@ -80,8 +96,8 @@ src/meshlens/
   model.py     loader forcing eager attention (see below)
   verdict.py   the preregistered decision rules, as tested code
 scripts/       confound check, experiment runners, analyses
-tests/         49 tests
-docs/          the frozen preregistration, with results appended
+tests/         62 tests
+docs/          the frozen preregistrations, with results appended
 paper/         LaTeX source and figures/make_figures.py
 results/       committed run artifacts
 ```
