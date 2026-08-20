@@ -273,7 +273,20 @@ later'' is recency, and the mechanism runs opposite to the geometric story.
 Across all 768 head slots, no head reaches $\rho_{\text{spatial}} = 0.50$; the
 maximum anywhere is $+0.469$, while $\rho_{\text{seq}}$ reaches $+0.951$. Of the
 263 active heads, 10 are more spatial than recency-driven. No head in this model
-is primarily geometric.
+is primarily geometric, and Figure~\ref{fig:taxonomy} shows why that is easy to
+miss: heads do separate by depth and do occupy distinct positions, so a
+head-by-head survey finds real structure. It is simply structure along the
+recency axis.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/head_taxonomy.pdf}
+\caption{Every head, placed by what its attention tracks. Points below the
+diagonal are more recency-driven than geometric. Early layers (light) form a band
+at zero geometric selectivity spread across a wide range of recency; later layers
+(dark) rise, but none crosses into primarily geometric territory.}
+\label{fig:taxonomy}
+\end{figure}
 
 \section{Re-ordering destroys the model}
 \label{sec:e2}
