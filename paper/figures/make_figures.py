@@ -196,26 +196,48 @@ def fig_layer_profile(res_path, out, sink_threshold=0.5):
     print(f"wrote {out}")
 
 
-def fig_resort(canon_path, xsort_path, out, layer=-1):
-    """Experiment 2: does apparent geometry follow the sort key?"""
-    a = np.load(canon_path, allow_pickle=True)
-    b = np.load(xsort_path, allow_pickle=True)
-    L = layer % a["rho_spatial"].shape[1]
-    ca = np.nanmedian(a["rho_spatial"][:, L, :], axis=0)
-    cb = np.nanmedian(b["rho_spatial"][:, L, :], axis=0)
+def fig_validity_gate(res_path, out):
+    """Experiment 2: what the arm actually produced once its gate tripped.
 
-    fig, ax = plt.subplots(figsize=(COLUMN, COLUMN))
-    ax.scatter(ca, cb, s=12, color=BLUE, alpha=0.8, linewidths=0)
-    lo = float(np.nanmin([ca.min(), cb.min(), 0]) - 0.05)
-    hi = float(np.nanmax([ca.max(), cb.max()]) + 0.05)
-    ax.plot([lo, hi], [lo, hi], color=MUTED, linewidth=0.6, linestyle=(0, (3, 3)), zorder=0)
-    ax.set_xlabel("$\\rho_{spatial}$, canonical order")
-    ax.set_ylabel("$\\rho_{spatial}$, x-sorted")
-    ax.set_title("A head on the diagonal is genuinely spatial", color=INK)
-    _tidy(ax, grid_axis="both")
+    Not a head-level figure -- the gate forbids reporting those -- but the loss
+    measurement stands on its own, and it is the sharpest single argument that
+    the model is modelling the sequence rather than the shape.
+    """
+    d = np.load(res_path)
+    a, b = d["loss_canonical"], d["loss_xsort"]
+    ratio = b / a
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(COLUMN * 2, 2.1),
+                                   gridspec_kw={"wspace": 0.3})
+    lo = float(min(a.min(), b.min())) * 0.6
+    hi = float(max(a.max(), b.max())) * 1.6
+    ax1.plot([lo, hi], [lo, hi], color=MUTED, linewidth=0.6, linestyle=(0, (3, 3)),
+             zorder=0, label="no change")
+    ax1.plot([lo, hi], [2 * lo, 2 * hi], color=ORANGE, linewidth=0.9, zorder=1)
+    ax1.scatter(a, b, s=14, color=BLUE, alpha=0.8, linewidths=0, zorder=2)
+    ax1.annotate("validity gate (2x)", xy=(hi * 0.55, hi * 0.28), color=ORANGE,
+                 fontsize=6.5, fontweight="bold", ha="center", va="top")
+    ax1.set_xscale("log")
+    ax1.set_yscale("log")
+    ax1.set_xlim(lo, hi)
+    ax1.set_ylim(lo, hi)
+    ax1.set_xlabel("cross-entropy, canonical order")
+    ax1.set_ylabel("cross-entropy, x-sorted")
+    ax1.set_title(f"Every chair moved the same way ({len(a)}/{len(a)})", color=INK)
+    _tidy(ax1, grid_axis="both")
+
+    ax2.hist(ratio, bins=18, color=BLUE, alpha=0.85, histtype="stepfilled", linewidth=0)
+    ax2.axvline(2.0, color=ORANGE, linewidth=0.9)
+    ax2.annotate("gate", xy=(2.6, ax2.get_ylim()[1] * 0.88), color=ORANGE,
+                 fontsize=6.5, fontweight="bold")
+    ax2.set_xlabel("loss ratio, x-sorted / canonical")
+    ax2.set_ylabel("chairs")
+    ax2.set_title(f"median {np.median(ratio):.0f}x, minimum {ratio.min():.0f}x", color=INK)
+    _tidy(ax2)
+
     fig.savefig(out)
     plt.close(fig)
-    print(f"wrote {out}")
+    print(f"wrote {out}  (mean ratio {b.mean() / a.mean():.1f}x)")
 
 
 def fig_sink_transfer(res_path, out):
@@ -285,10 +307,11 @@ def main():
         fig_sink_transfer(e3, out / "sink_transfer.pdf")
     else:
         print(f"skip sink transfer figure: {e3} missing (run scripts/run_e3.py)")
-    if canon.exists() and xsort.exists():
-        fig_resort(canon, xsort, out / "resort.pdf")
+    gate = res / "e2_validity_gate.npz"
+    if gate.exists():
+        fig_validity_gate(gate, out / "validity_gate.pdf")
     else:
-        print("skip resort figure: needs both canonical and xsort runs")
+        print(f"skip validity gate figure: {gate} missing")
 
 
 if __name__ == "__main__":
