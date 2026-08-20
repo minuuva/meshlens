@@ -171,4 +171,51 @@ data is committed, documented here, and triggers a full rerun.
 
 ## Results
 
-(To be appended after the tests run as specified, whatever they show.)
+Recorded 2026-08-20, after the tests ran as specified, on the 100 held-out chairs.
+
+### Experiment 4: REFUTED
+
+Final layer, 20 of 32 heads active.
+
+    rho_adj = +0.041   95% CI [+0.037, +0.044]
+
+The rule required +0.15 with a CI excluding zero to call topology present, and
+below +0.05 with the CI excluding +0.15 to call it absent. The estimate is
++0.041 with an upper bound of +0.044, so it is refuted: attention carries no
+topological structure once sequence distance and 3D distance are controlled.
+
+Not a single one of the 261 active head slots in the whole network exceeds the
++0.15 band, and the maximum anywhere is +0.074. The realized adjacency rate was
+0.73% of causal pairs against the 1.15% the power table assumed, which raises the
+effect needed to clear +0.15 from roughly 1.9x to 2.2x attention on adjacent
+pairs. That penalty is far too small to account for a result this flat.
+
+### Experiment 5: rule does not apply, but the control is the interesting number
+
+    rho_shared = +0.086   95% CI [+0.082, +0.093]
+
+The preregistered E5 rule asks whether an adjacency effect is really token
+matching. There is no adjacency effect for it to explain, so the rule is silent.
+
+The comparison is worth reporting anyway, as exploratory. Over all 261 active
+head slots, shared-token sensitivity exceeds adjacency in 93.5% of them, with
+medians of +0.095 against +0.047, almost exactly a factor of two. Ten heads clear
++0.15 on shared tokens; none do on adjacency. The ordering holds in all 24
+layers.
+
+Shared vertex positions here are counted over non-adjacent pairs only, so this
+is not adjacency leaking in under another name. It is sensitivity to repeated
+coordinate values between faces that do not touch.
+
+That is a lexical mechanism, not a geometric one. What little structure survives
+the controls looks like a model matching repeated token values, which is what a
+language model does, rather than tracking the surface it is building.
+
+### What round 2 settles
+
+Round 1 left the metric-proximity effect at about 0.19, precisely estimated and
+sitting in a dead band, with the question of whether anything geometric survives
+the recency control unresolved. Round 2 answers it for the sharpest available
+geometric feature, chosen precisely because its entanglement with the confound is
+-0.153 rather than +0.569: mesh topology is not tracked, and the nearest thing to
+a positive result is token repetition.

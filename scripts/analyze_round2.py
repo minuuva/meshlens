@@ -58,8 +58,29 @@ def main():
         med_s, lo_s, hi_s = bootstrap_ci(per_chair_sh, seed=0)
         print(f"\nE5 CONTROL (shared vertex positions, non-adjacent pairs only)")
         print(f"  rho_shared = {med_s:+.3f}  95% CI [{lo_s:+.3f}, {hi_s:+.3f}]")
+        # Exploratory, and reported whichever way E4 landed. The preregistered
+        # E5 rule only asks whether an adjacency effect is really token
+        # matching; it has nothing to say when there is no adjacency effect.
+        # But the two quantities are still worth putting side by side, because
+        # a model that tracks repeated coordinate values more strongly than it
+        # tracks mesh structure is doing something lexical, not geometric.
+        all_active = sink.mean(axis=0) <= SINK_THRESHOLD  # (layers, heads)
+        act_adj = np.nanmedian(adj, axis=0)[all_active]
+        act_sh = np.nanmedian(shared, axis=0)[all_active]
+        ok = np.isfinite(act_adj) & np.isfinite(act_sh)
+        if ok.sum():
+            a, sh_ = act_adj[ok], act_sh[ok]
+            print(f"\n  exploratory, over all {ok.sum()} active head slots in every layer:")
+            print(f"    shared-token sensitivity exceeds adjacency in "
+                  f"{100 * float((sh_ > a).mean()):.1f}% of them")
+            print(f"    medians {np.median(a):+.3f} adjacency vs {np.median(sh_):+.3f} "
+                  f"shared tokens ({np.median(sh_) / np.median(a):.2f}x)")
+            print(f"    heads above +0.15: {int((a > 0.15).sum())} for adjacency, "
+                  f"{int((sh_ > 0.15).sum())} for shared tokens")
+
         if med_a <= 0.05:
-            print("\n  (E4 found no adjacency effect, so there is nothing for E5 to explain)")
+            print("\n  (the preregistered E5 rule does not apply: E4 found no "
+                  "adjacency effect for it to explain)")
         elif med_s >= med_a * 0.5:
             print("\n  TOKEN MATCHING: the adjacency effect is comparable to the "
                   "shared-token effect, so it is not specifically topological")
