@@ -32,3 +32,7 @@ paper/figures/*.png
 
 # ...but the paper ships its bibliography so the build needs no bibtex pass
 !paper/main.bbl
+
+# IEEEtran is not in the TeX distribution here; vendored so the paper builds anywhere
+!paper/IEEEtran.cls
+!paper/IEEEtran.bst
