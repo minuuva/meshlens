@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: If you use this software or its findings, please cite it.
+title: "meshlens: Serialization Order Confounds Attention Analysis in MeshXL"
+abstract: >-
+  Code, preregistrations, and run artifacts showing that attention in an
+  autoregressive 3D mesh transformer tracks the order in which the mesh was
+  serialized rather than the geometry of the mesh itself. In MeshXL's canonical
+  serialization a face's index in the token stream predicts its vertical position
+  at Spearman 0.951, so attention maps painted onto a mesh surface are confounded
+  with plain recency before any causal question is asked.
+type: software
+authors:
+  - family-names: Choi
+    given-names: Minu
+    affiliation: University of Virginia
+    email: qce2dp@virginia.edu
+repository-code: https://github.com/minuuva/meshlens
+license: MIT
+version: 1.0.0
+date-released: 2026-08-22
+keywords:
+  - mechanistic interpretability
+  - attention
+  - 3D mesh generation
+  - MeshXL
+  - attention sinks
+  - preregistration
+  - confounding

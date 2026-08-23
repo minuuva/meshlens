@@ -92,6 +92,13 @@ No GPU required. The 100-chair experiment takes about 80 minutes on 100 vCPU. Th
 original work needed an A100 only because it stored complete `(32, T, T)`
 attention per layer.
 
+## License
+
+Code is MIT (see [LICENSE](LICENSE)). The paper and figures are CC BY 4.0.
+
+Neither ShapeNet nor the MeshXL checkpoints are redistributed here. ShapeNet is
+research-license; see [data/README.md](data/README.md) for how to obtain both.
+
 ## Provenance
 
 This grew out of an earlier collaboration with Ethan Cao and Patrick Ho, who are
@@ -102,4 +109,4 @@ everything under preregistered rules; the reasoning is in [docs/](docs/) and the
 commit history.
 
 MeshXL is by Chen et al. (NeurIPS 2024); the chair fine-tune is the authors' own
-public checkpoint. ShapeNet is research-license and is not redistributed here.
+public checkpoint.
