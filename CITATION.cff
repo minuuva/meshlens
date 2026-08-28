@@ -11,7 +11,7 @@ abstract: >-
 type: software
 authors:
   - family-names: Choi
-    given-names: Minu
+    given-names: Minwoo
     affiliation: University of Virginia
     email: qce2dp@virginia.edu
 repository-code: https://github.com/minuuva/meshlens

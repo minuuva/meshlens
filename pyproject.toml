@@ -4,7 +4,7 @@ version = "1.0.0"
 description = "Mechanistic interpretability for 3D mesh transformers: separating spatial attention from sequence recency in MeshXL"
 readme = "README.md"
 license = "MIT"
-authors = [{ name = "Minu Choi", email = "qce2dp@virginia.edu" }]
+authors = [{ name = "Minwoo Choi", email = "qce2dp@virginia.edu" }]
 requires-python = ">=3.11,<3.12"
 dependencies = [
     "numpy>=1.26,<2.2",

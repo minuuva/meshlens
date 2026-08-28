@@ -98,7 +98,7 @@ attention per layer.
 
 ```bibtex
 @software{choi2026meshlens,
-  author    = {Choi, Minu},
+  author    = {Choi, Minwoo},
   title     = {meshlens: Serialization Order Confounds Attention
                Analysis in {MeshXL}},
   year      = {2026},
