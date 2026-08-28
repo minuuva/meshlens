@@ -1,5 +1,7 @@
 # meshlens
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22149960.svg)](https://doi.org/10.5281/zenodo.22149960)
+
 Does attention in an autoregressive 3D mesh transformer track the geometry of the
 shape, or the order in which that shape was serialized?
 
@@ -91,6 +93,20 @@ fine-tune is public, so nothing depends on private artifacts.
 No GPU required. The 100-chair experiment takes about 80 minutes on 100 vCPU. The
 original work needed an A100 only because it stored complete `(32, T, T)`
 attention per layer.
+
+## Citation
+
+```bibtex
+@software{choi2026meshlens,
+  author    = {Choi, Minu},
+  title     = {meshlens: Serialization Order Confounds Attention
+               Analysis in {MeshXL}},
+  year      = {2026},
+  publisher = {Zenodo},
+  doi       = {10.5281/zenodo.22149960},
+  url       = {https://doi.org/10.5281/zenodo.22149960}
+}
+```
 
 ## License
 
