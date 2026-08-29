@@ -27,3 +27,13 @@ keywords:
   - attention sinks
   - preregistration
   - confounding
+preferred-citation:
+  type: article
+  title: "Serialization Order Confounds Attention Analysis in MeshXL"
+  authors:
+    - family-names: Choi
+      given-names: Minwoo
+      affiliation: University of Virginia
+  year: 2026
+  doi: 10.5281/zenodo.22150449
+  url: "https://doi.org/10.5281/zenodo.22150449"

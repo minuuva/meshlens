@@ -1,6 +1,6 @@
 # meshlens
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22149960.svg)](https://doi.org/10.5281/zenodo.22149960)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22150449.svg)](https://doi.org/10.5281/zenodo.22150449)
 
 Does attention in an autoregressive 3D mesh transformer track the geometry of the
 shape, or the order in which that shape was serialized?
@@ -8,8 +8,9 @@ shape, or the order in which that shape was serialized?
 It tracks the order. This repository holds the code, preregistrations, and
 artifacts behind that finding.
 
-**Paper:** [paper/main.pdf](paper/main.pdf), "Serialization Order Confounds
-Attention Analysis in MeshXL"
+**Paper:** "Serialization Order Confounds Attention Analysis in MeshXL",
+[doi:10.5281/zenodo.22150449](https://doi.org/10.5281/zenodo.22150449)
+([PDF](paper/main.pdf))
 
 ## The problem
 
@@ -96,17 +97,21 @@ attention per layer.
 
 ## Citation
 
+Cite the paper:
+
 ```bibtex
-@software{choi2026meshlens,
+@article{choi2026meshlens,
   author    = {Choi, Minwoo},
-  title     = {meshlens: Serialization Order Confounds Attention
-               Analysis in {MeshXL}},
+  title     = {Serialization Order Confounds Attention Analysis in {MeshXL}},
   year      = {2026},
   publisher = {Zenodo},
-  doi       = {10.5281/zenodo.22149960},
-  url       = {https://doi.org/10.5281/zenodo.22149960}
+  doi       = {10.5281/zenodo.22150449},
+  url       = {https://doi.org/10.5281/zenodo.22150449}
 }
 ```
+
+The code archive has its own DOI, [10.5281/zenodo.22149960](https://doi.org/10.5281/zenodo.22149960), if you need to cite a
+specific software version.
 
 ## License
 
